@@ -1,8 +1,10 @@
 import * as React from "react";
 
-import { createHighlighter, type HighlighterGeneric } from "shiki";
+import { createHighlighter } from "shiki";
 
 import { cn } from "@/lib/utils";
+
+import type { BundledLanguage, BundledTheme, HighlighterGeneric } from "shiki";
 
 interface CodeEditorProps {
     value?: string;
@@ -21,13 +23,18 @@ export function CodeEditor({
     className,
 }: CodeEditorProps) {
     const [highlighted, setHighlighted] = React.useState("");
-    const highlighterRef =
-        React.useRef<HighlighterGeneric<string, string> | null>(null);
+    const highlighterRef = React.useRef<HighlighterGeneric<
+        BundledLanguage,
+        BundledTheme
+    > | null>(null);
     const textareaRef = React.useRef<HTMLTextAreaElement>(null);
     const preRef = React.useRef<HTMLPreElement>(null);
 
     const renderHighlight = React.useCallback(
-        (code: string, hl?: HighlighterGeneric<string, string> | null) => {
+        (
+            code: string,
+            hl?: HighlighterGeneric<BundledLanguage, BundledTheme> | null,
+        ) => {
             const instance = hl || highlighterRef.current;
             if (!instance) return;
 
