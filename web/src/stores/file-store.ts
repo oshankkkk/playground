@@ -54,7 +54,7 @@ export const useFileStore = create<FileState & FileActions>((set) => ({
 
     createEmptyFile: () =>
         set((state) => {
-            const newFileName = `0${state.tree.length + 1}-main.bal`;
+            const newFileName = `${String(state.tree.length + 1).padStart(2, "0")}-main.bal`;
             const node: FileNode = {
                 name: newFileName,
                 kind: "file",
