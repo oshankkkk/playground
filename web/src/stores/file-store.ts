@@ -80,13 +80,6 @@ export function useSelectedFile(): Extract<FileNode, { kind: "file" }> | null {
     return node;
 }
 
-export function isExampleFile(path: FilePath) {
-    return DEFAULT_TREE.some((node) => {
-        if (node.kind === "file") return node.name === path;
-        if (node.kind === "dir")
-            return node.children.some(
-                (child) => child.kind === "file" && child.name === path,
-            );
-        return false;
-    });
+export function isExample(node: FileNode) {
+    return DEFAULT_TREE.some((example) => example.name === node.name);
 }

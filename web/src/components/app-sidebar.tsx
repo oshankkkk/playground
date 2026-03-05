@@ -31,7 +31,7 @@ import {
 
 import { useIsMobile } from "@/hooks/use-mobile";
 
-import { isExampleFile, useFileStore } from "@/stores/file-store";
+import { isExample, useFileStore } from "@/stores/file-store";
 
 import { cn } from "@/lib/utils";
 
@@ -42,8 +42,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const selectedFilePath = useFileStore((s) => s.selectedFilePath);
     const createEmptyFile = useFileStore((s) => s.createEmptyFile);
 
-    const examples = tree.filter((n) => isExampleFile(n.name));
-    const others = tree.filter((n) => !isExampleFile(n.name));
+    const examples = tree.filter((n) => isExample(n));
+    const others = tree.filter((n) => !isExample(n));
 
     return (
         <Sidebar {...props}>
