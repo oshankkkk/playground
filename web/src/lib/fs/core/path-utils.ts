@@ -16,11 +16,15 @@ export function ext(path: string): string {
 	return path.split(".").pop() ?? "";
 }
 
-export function joinPath(...segments: string[]): string {
-	return segments
-		.flatMap((s) => s.split("/"))
-		.filter(Boolean)
-		.join("/");
+export function join(...segments: string[]): string {
+	const leading = segments[0].startsWith("/") ? "/" : "";
+	return (
+		leading +
+		segments
+			.flatMap((s) => s.split("/"))
+			.filter(Boolean)
+			.join("/")
+	);
 }
 
 export function isRootPath(path: string): boolean {

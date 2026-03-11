@@ -31,7 +31,7 @@ export class LayeredFS implements FS {
 	}
 
 	readDir(path: string) {
-		if (!isRootPath(path))
+		if (isRootPath(path))
 			return [
 				{ name: TEMP_ROOT.slice(1), isDir: true },
 				{ name: LOCAL_ROOT.slice(1), isDir: true },
