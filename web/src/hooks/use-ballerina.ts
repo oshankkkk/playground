@@ -15,11 +15,14 @@ export function useBallerina() {
 
 		async function load() {
 			const go = new window.Go();
-			const buffer = await fetchWithProgress("ballerina.wasm", (pct) => {
-				if (!cancelled) setProgress(pct);
-			});
 
-			const result = await WebAssembly.instantiate(buffer, go.importObject);
+			const result = await WebAssembly.instantiateStreaming(
+				fetchResponseWithProgress("ballerina.wasm", (pct) => {
+					if (!cancelled) setProgress(pct);
+				}),
+				go.importObject,
+			);
+
 			go.run(result.instance);
 
 			if (!cancelled) {
@@ -52,37 +55,33 @@ export function useBallerina() {
 	return { isReady, progress, run };
 }
 
-async function fetchWithProgress(
+async function fetchResponseWithProgress(
 	url: string,
 	onProgress: (pct: number) => void,
-): Promise<ArrayBuffer> {
+): Promise<Response> {
 	const res = await fetch(url);
 	const total = Number(res.headers.get("content-length") ?? 0);
 
-	if (!res.body || !total) {
-		return res.arrayBuffer();
-	}
+	if (!res.body || !total) return res;
 
 	const reader = res.body.getReader();
-	const chunks: Uint8Array[] = [];
-	let loaded = 0;
+	const stream = new ReadableStream({
+		async start(controller) {
+			let loaded = 0;
+			for (;;) {
+				const { done, value } = await reader.read();
+				if (done) {
+					controller.close();
+					break;
+				}
+				if (value) {
+					loaded += value.byteLength;
+					onProgress(Math.round((loaded / total) * 100));
+					controller.enqueue(value);
+				}
+			}
+		},
+	});
 
-	for (;;) {
-		const { done, value } = await reader.read();
-		if (done) break;
-		if (value) {
-			chunks.push(value);
-			loaded += value.byteLength;
-			onProgress(Math.round((loaded / total) * 100));
-		}
-	}
-
-	const bytes = new Uint8Array(loaded);
-	let offset = 0;
-	for (const chunk of chunks) {
-		bytes.set(chunk, offset);
-		offset += chunk.byteLength;
-	}
-
-	return bytes.buffer;
+	return new Response(stream, { headers: res.headers });
 }
