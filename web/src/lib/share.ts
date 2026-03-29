@@ -12,15 +12,20 @@ export type SharePayload = {
 	openRelativePath?: string;
 };
 
+async function processStream(
+	input: Uint8Array<ArrayBuffer>,
+	stream: CompressionStream | DecompressionStream,
+): Promise<Uint8Array<ArrayBuffer>> {
+	const writer = stream.writable.getWriter();
+	const resultBuffer = new Response(stream.readable).arrayBuffer();
+	await writer.write(input);
+	await writer.close();
+	return new Uint8Array(await resultBuffer);
+}
+
 async function compressAndEncode(text: string): Promise<string> {
 	const bytes = new TextEncoder().encode(text);
-	const stream = new CompressionStream("gzip");
-	const writer = stream.writable.getWriter();
-	void writer.write(bytes);
-	void writer.close();
-	const compressed = new Uint8Array(
-		await new Response(stream.readable).arrayBuffer(),
-	);
+	const compressed = await processStream(bytes, new CompressionStream("gzip"));
 
 	const chunkSize = 8192;
 	let binary = "";
@@ -32,11 +37,10 @@ async function compressAndEncode(text: string): Promise<string> {
 
 async function decodeAndDecompress(b64: string): Promise<string> {
 	const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-	const stream = new DecompressionStream("gzip");
-	const writer = stream.writable.getWriter();
-	void writer.write(bytes);
-	void writer.close();
-	const decompressed = await new Response(stream.readable).arrayBuffer();
+	const decompressed = await processStream(
+		bytes,
+		new DecompressionStream("gzip"),
+	);
 	return new TextDecoder().decode(decompressed);
 }
 
