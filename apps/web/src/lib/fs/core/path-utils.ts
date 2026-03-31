@@ -1,4 +1,4 @@
-import { LOCAL_ROOT, SHARED_ROOT } from "@/lib/fs/fs-roots";
+import { EXAMPLES_ROOT, LOCAL_ROOT, SHARED_ROOT } from "@/lib/fs/fs-roots";
 
 export function pathSegments(path: string): string[] {
 	return path.split("/").filter(Boolean);
@@ -61,6 +61,10 @@ export function getRelativePath(
 
 export function isSharedPath(path: string): boolean {
 	return isUnder(path, SHARED_ROOT);
+}
+
+export function isExamplesPath(path: string): boolean {
+	return isUnder(path, EXAMPLES_ROOT);
 }
 
 export function sharedToLocalDestination(sharedPath: string): string | null {
