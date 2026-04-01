@@ -55,6 +55,7 @@ import { getExamplesSubtree, getSharedSubtree } from "@/lib/file-tree-utils";
 import {
 	basename,
 	dirname,
+	isExamplesPath,
 	isActiveOrAncestor,
 	isSharedPath,
 	sharedToLocalDestination,
@@ -76,7 +77,8 @@ function FileTreeFileNode({ node, path }: FileTreeNodeProps) {
 
 	const isMobile = useIsMobile();
 
-	const shared = isSharedPath(path);
+	const isSharedFile = isSharedPath(path);
+	const isExampleFile = isExamplesPath(path);
 
 	const { toggleSidebar } = useSidebar();
 
@@ -103,7 +105,7 @@ function FileTreeFileNode({ node, path }: FileTreeNodeProps) {
 			<div
 				className={cn(
 					"group/row relative w-full rounded-none hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group-hover/row:**:data-[sidebar=menu-button]:bg-transparent",
-					isSharedPath(path) && "opacity-75 text-muted-foreground",
+					isSharedFile && "opacity-75 text-muted-foreground",
 				)}
 			>
 				<SidebarMenuButton
@@ -111,7 +113,7 @@ function FileTreeFileNode({ node, path }: FileTreeNodeProps) {
 					onClick={handleClick}
 				>
 					<HugeiconsIcon
-						icon={shared ? AlertSquareIcon : File01Icon}
+						icon={isSharedFile ? AlertSquareIcon : File01Icon}
 						strokeWidth={1.5}
 					/>
 					{node.name}
@@ -130,23 +132,25 @@ function FileTreeFileNode({ node, path }: FileTreeNodeProps) {
 						side="bottom"
 						align={isMobile ? "end" : "start"}
 					>
-						<DropdownMenuItem
-							onClick={() => {
-								setFileOperationDialog({
-									type: "rename-file",
-									path,
-									defaultName: node.name,
-								});
-							}}
-						>
-							<HugeiconsIcon icon={Edit02Icon} strokeWidth={1.5} />
-							<span>Rename</span>
-						</DropdownMenuItem>
+						{!isExampleFile && (
+							<DropdownMenuItem
+								onClick={() => {
+									setFileOperationDialog({
+										type: "rename-file",
+										path,
+										defaultName: node.name,
+									});
+								}}
+							>
+								<HugeiconsIcon icon={Edit02Icon} strokeWidth={1.5} />
+								<span>Rename</span>
+							</DropdownMenuItem>
+						)}
 						<DropdownMenuItem onClick={() => void copyShareLink(path)}>
 							<HugeiconsIcon icon={Share08Icon} strokeWidth={1.5} />
 							<span>Share</span>
 						</DropdownMenuItem>
-						{isSharedPath(path) && (
+						{isSharedFile && (
 							<DropdownMenuItem
 								onClick={() => {
 									saveFile();
@@ -167,19 +171,21 @@ function FileTreeFileNode({ node, path }: FileTreeNodeProps) {
 								<span>Fork</span>
 							</DropdownMenuItem>
 						)}
-						<DropdownMenuItem
-							variant="destructive"
-							onClick={() =>
-								setFileOperationDialog({
-									type: "delete-file",
-									path,
-									defaultName: node.name,
-								})
-							}
-						>
-							<HugeiconsIcon icon={Delete02Icon} strokeWidth={1.5} />
-							<span>Delete</span>
-						</DropdownMenuItem>
+						{!isExampleFile && (
+							<DropdownMenuItem
+								variant="destructive"
+								onClick={() =>
+									setFileOperationDialog({
+										type: "delete-file",
+										path,
+										defaultName: node.name,
+									})
+								}
+							>
+								<HugeiconsIcon icon={Delete02Icon} strokeWidth={1.5} />
+								<span>Delete</span>
+							</DropdownMenuItem>
+						)}
 					</DropdownMenuContent>
 				</DropdownMenu>
 			</div>
@@ -202,7 +208,8 @@ function FileTreeDirNode({
 
 	const isMobile = useIsMobile();
 
-	const shared = isSharedPath(path);
+	const isSharedDir = isSharedPath(path);
+	const isExampleDir = isExamplesPath(path);
 
 	const activeFilePath = useActiveFilePath();
 	const expandedPaths = useExpandedPaths();
@@ -235,13 +242,13 @@ function FileTreeDirNode({
 				<div
 					className={cn(
 						"group/row relative w-full rounded-none hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group-hover/row:**:data-[sidebar=menu-button]:bg-transparent",
-						isSharedPath(path) && "opacity-75 text-muted-foreground",
+						isSharedDir && "opacity-75 text-muted-foreground",
 					)}
 				>
 					<SidebarMenuButton className="w-full" onClick={handleToggle}>
 						<HugeiconsIcon icon={ChevronDown} strokeWidth={1.5} />
 						<HugeiconsIcon
-							icon={shared ? AlertSquareIcon : FolderIcon}
+							icon={isSharedDir ? AlertSquareIcon : FolderIcon}
 							strokeWidth={1.5}
 						/>
 						<span className="truncate">{node.name}</span>
@@ -276,23 +283,25 @@ function FileTreeDirNode({
 								<HugeiconsIcon icon={FolderIcon} strokeWidth={1.5} />
 								<span>New Folder</span>
 							</DropdownMenuItem>
-							<DropdownMenuItem
-								onClick={() => {
-									setFileOperationDialog({
-										type: "rename-folder",
-										path,
-										defaultName: node.name,
-									});
-								}}
-							>
-								<HugeiconsIcon icon={Edit02Icon} strokeWidth={1.5} />
-								<span>Rename</span>
-							</DropdownMenuItem>
+							{!isExampleDir && (
+								<DropdownMenuItem
+									onClick={() => {
+										setFileOperationDialog({
+											type: "rename-folder",
+											path,
+											defaultName: node.name,
+										});
+									}}
+								>
+									<HugeiconsIcon icon={Edit02Icon} strokeWidth={1.5} />
+									<span>Rename</span>
+								</DropdownMenuItem>
+							)}
 							<DropdownMenuItem onClick={() => void copyShareLink(path)}>
 								<HugeiconsIcon icon={Share08Icon} strokeWidth={1.5} />
 								<span>Share</span>
 							</DropdownMenuItem>
-							{isSharedPath(path) && (
+							{isSharedDir && (
 								<DropdownMenuItem
 									onClick={() => {
 										saveFile();
@@ -313,19 +322,21 @@ function FileTreeDirNode({
 									<span>Fork</span>
 								</DropdownMenuItem>
 							)}
-							<DropdownMenuItem
-								variant="destructive"
-								onClick={() =>
-									setFileOperationDialog({
-										type: "delete-folder",
-										path,
-										defaultName: node.name,
-									})
-								}
-							>
-								<HugeiconsIcon icon={Delete02Icon} strokeWidth={1.5} />
-								<span>Delete</span>
-							</DropdownMenuItem>
+							{!isExampleDir && (
+								<DropdownMenuItem
+									variant="destructive"
+									onClick={() =>
+										setFileOperationDialog({
+											type: "delete-folder",
+											path,
+											defaultName: node.name,
+										})
+									}
+								>
+									<HugeiconsIcon icon={Delete02Icon} strokeWidth={1.5} />
+									<span>Delete</span>
+								</DropdownMenuItem>
+							)}
 						</DropdownMenuContent>
 					</DropdownMenu>
 				</div>
