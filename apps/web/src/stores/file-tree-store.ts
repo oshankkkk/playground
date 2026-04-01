@@ -300,12 +300,16 @@ export const useFileTreeStore = create<FileTreeState & FileTreeActions>()(
 				root: FileNode,
 				openRelativePath?: string | null,
 			): { loaded: boolean; openPath: string | null } {
-				const openPath = _fs().graftSharedTree(root, openRelativePath);
-				set((s) => {
-					s.tempTree = _fs().tempTree();
-					s.localTree = _fs().localTree();
-				});
-				return { loaded: true, openPath };
+				try {
+					const openPath = _fs().graftSharedTree(root, openRelativePath);
+					set((s) => {
+						s.tempTree = _fs().tempTree();
+						s.localTree = _fs().localTree();
+					});
+					return { loaded: true, openPath };
+				} catch (e) {
+					return { loaded: false, openPath: null };
+				}
 			},
 		};
 	}),
