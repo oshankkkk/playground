@@ -24,11 +24,12 @@ usage() {
     echo "Usage:"
     echo "  $0 <remote-url> <branch>"
     echo "  $0 --reset"
+    exit 1
 }
 
 reset() {
     echo "Resetting submodule..."
-    git submodule update --init --force
+    git submodule update --init --force "$SUBMODULE_DIR"
     echo "Submodule reset complete."
 }
 
